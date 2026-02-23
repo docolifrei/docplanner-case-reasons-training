@@ -43,7 +43,7 @@ conn = st.connection("gsheets", type=GSheetsConnection)
 
 @st.cache_data
 def load_data():
-    df = pd.read_csv('[CC][GLOBAL] New Case Reasons Restructure - New Case Taxonomy for Efficiency.csv')
+    df = pd.read_csv('data.csv')
     df['Case Reason 1 (mandatory)'] = df['Case Reason 1 (mandatory)'].ffill()
     df['Case Reason 2 (mandatory)'] = df['Case Reason 2 (mandatory)'].ffill()
     return df
@@ -82,7 +82,7 @@ st.sidebar.title("💎 DP Portal")
 if st.session_state.role == "admin":
     menu = ["Admin Dashboard", "Explanation", "Leaderboard"]
 else:
-    menu = ["Login", "Practice", "Explanation", "Leaderboard"]
+    menu = ["Login", "Explanation", "Practice", "Leaderboard"]
 
 page = st.sidebar.radio("Navigation", menu)
 
@@ -151,18 +151,44 @@ elif page == "Practice":
 
         # Taxonomy Dropdowns
         r1 = st.selectbox("Reason 1", ["-- Choose --"] + sorted(df['Case Reason 1 (mandatory)'].unique().tolist()))
-        r2 = st.selectbox("Reason 2", ["-- Choose --"] + sorted(df[df['Case Reason 1 (mandatory)'] == r1][
-                                                                    'Case Reason 2 (mandatory)'].unique().tolist())) if r1 != "-- Choose --" else "-- Choose --"
+
+        r2 = "-- Choose --"
+        r3 = None
+
+        if r1 != "-- Choose --":
+            options_r2 = sorted(
+                df[df['Case Reason 1 (mandatory)'] == r1]['Case Reason 2 (mandatory)'].unique().tolist())
+            r2 = st.selectbox("Reason 2", ["-- Choose --"] + options_r2)
+
+            if r2 != "-- Choose --":
+                # Check if there are actually any Reason 3 options for this selection
+                r3_options = df[(df['Case Reason 1 (mandatory)'] == r1) &
+                                (df['Case Reason 2 (mandatory)'] == r2)][
+                    'Case Reason 3 (optional)'].dropna().unique().tolist()
+
+                if r3_options:
+                    r3 = st.selectbox("Reason 3 (Optional)", ["-- Choose --"] + r3_options)
 
         if not st.session_state.question_solved:
             if st.button("Submit"):
-                if r1 == row['Case Reason 1 (mandatory)'] and r2 == row['Case Reason 2 (mandatory)']:
+                # Check if R1 and R2 match
+                check_r1 = (r1 == row['Case Reason 1 (mandatory)'])
+                check_r2 = (r2 == row['Case Reason 2 (mandatory)'])
+
+                # Check R3 only if the correct answer actually HAS an R3
+                correct_r3 = row['Case Reason 3 (optional)']
+                if pd.isna(correct_r3):
+                    check_r3 = True  # No R3 required for this scenario
+                else:
+                    check_r3 = (r3 == correct_r3)
+
+                if check_r1 and check_r2 and check_r3:
                     st.session_state.score += 10
                     st.session_state.question_solved = True
                     st.rerun()
                 else:
                     st.session_state.score -= 5
-                    st.error("Incorrect. -5 points.")
+                    st.error("Incorrect path. Review the Sidebar Reference and try again!")
         else:
             st.success("Correct!")
             if st.button("Next Scenario"):
