@@ -88,31 +88,48 @@ else:
 
 page = st.sidebar.radio("Navigation", menu)
 
-# --- 6. PAGE LOGIC ---
-if page == "Login":
+if st.session_state.role is None:
+    # --- ONLY SHOW LOGIN PAGE ---
     st.markdown('<div class="glass-card">', unsafe_allow_html=True)
     st.title("🛡️ Docplanner Training Access")
+
     col1, col2 = st.columns(2)
     with col1:
         u_name = st.text_input("Agent Name")
     with col2:
-        u_country = st.selectbox("Market", ["Global", "Spain", "Poland", "Italy", "Brazil", "Mexico"])
+        u_market = st.selectbox("Market", ["Spain", "Poland", "Italy", "Brazil", "Mexico", "Global"])
 
     u_role = st.radio("Access Level", ["Agent", "Admin Manager"], horizontal=True)
     u_pass = st.text_input("Security Key", type="password") if u_role == "Admin Manager" else ""
 
     if st.button("Initialize"):
         if u_role == "Admin Manager" and u_pass == "DP2026!":
-            st.session_state.role, st.session_state.user, st.session_state.country = "admin", u_name, u_country
+            st.session_state.role = "admin"
+            st.session_state.user = u_name
             st.rerun()
         elif u_role == "Agent" and u_name:
-            st.session_state.role, st.session_state.user, st.session_state.country = "user", u_name, u_country
+            st.session_state.role = "user"
+            st.session_state.user = u_name
             st.rerun()
     st.markdown('</div>', unsafe_allow_html=True)
 
-elif page == "Admin Dashboard":
+else:
+    # --- SHOW REST OF THE APP (Sidebar + Content) ---
+    if st.session_state.role == "admin":
+        menu = ["Admin Dashboard", "Practice", "Explanation", "Leaderboard"]
+    else:
+        menu = ["Practice", "Explanation", "Leaderboard"]
+
+    page = st.sidebar.radio("Navigation", menu)
+
+    # Add a Logout button at the very bottom of sidebar
+    if st.sidebar.button("Logout"):
+        st.session_state.role = None
+        st.rerun()
+
+if page == "Admin Dashboard":
     st.markdown('<div class="glass-card">', unsafe_allow_html=True)
-    st.header("⚙️ GCP Sync Status")
+    st.header("⚙️ Admin Controls")
     c1, c2 = st.columns(2)
     c1.metric("Sheets API", "Connected", "Active")
     c2.metric("Project ID", st.secrets["connections"]["gsheets"]["project_id"])
