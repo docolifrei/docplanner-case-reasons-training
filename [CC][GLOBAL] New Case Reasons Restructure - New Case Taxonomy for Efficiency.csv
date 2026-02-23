@@ -1,0 +1,147 @@
+Case Reason 1 (mandatory),Case Reason 2 (mandatory),Case Reason 3 (optional),Definition / Notes
+Billing & Payments,Invoices,Request Refund ,Doctor asking for a full or partial refund from invoice payment
+,,Request Invoice,Doctor asking for their Docplanner subscription bill.
+,,Update Tax/Billing Data,Changing NIP/VAT or address on the invoice.
+,Payment Methods,Update Card / Bank,Updating the payment source for the subscription.
+,Verifactu (ES only),B2Brouter,Help configuring the B2Brouter invoicing tool
+,,Configuration / Setup,Help setting up Verifactu details.
+,,Submission Error,Technical failure sending invoice data to Spanish tax authority.
+DP Phone,Technical Issues,,Technical issues with DP Phone
+,Configuration,,Help configuring DP Phone
+HireDoc (PL only),Offer Visibility/Ranking,,"Issues regarding the search position, promotion status, or disappearance of a published job offer from the public listing."
+,Create/Edit Offer,,"Issues regarding the drafting, saving, updating, or archiving of a job advertisement in the recruiter panel."
+,Candidate Management,,"Issues related to receiving, viewing, downloading CVs, or contacting candidates who have applied to the offer."
+Noa Standalone,Technical Issues,,Technical issues with NOA Standalone
+,Configuration,,Help configuring NOA Standalone
+Profile Marketplace,Access & Login,Password / MFA Reset,User locked out of account.
+,Data Privacy (GDPR),Consent / Dispute,User claims they never signed up.
+,,Right to be Forgotten,Request to delete data and close account.
+,First Class,Activation / Setup,"Issues enabling the ""First Class"" boost or selecting the city/specialty."
+,,Billing / Renewal,Specific questions about the First Class invoice or cancelling the add-on.
+,,Performance / Visibility,Doctor complains they are not appearing in top results despite paying.
+,Mobile App,,Issues specific to iOS/Android app.
+,Patient Booking Experience,"""Book Online"" Button",Issues with the booking widget/button on the profile.
+,,Slot Visibility (Patient View),Patient cannot see slots that the doctor thinks are open.
+,,DP Payment,Patient has issues with the DP Payments feature for payments
+,Profile Configuration,Bio / Photos / Address,"Issues with the doctor's ""business card"" data visible to patients."
+,,Services & Price List,Issues with the list of treatments and costs shown on the profile.
+,Ranking & Visibility,,General ranking questions (for non-First Class clients).
+,Reviews,Moderation / Removal Request,Doctor asking to remove a negative patient opinion.
+,,Reply to Review,Issues posting a public response to a patient review.
+,,Review Gathering (Stars),Questions about how to get more reviews or stars.
+,Verification,Verification Issues,"Validating doctor credentials (PWZ, GMC)."
+,,Update Verification Information,Questions about license/identity verification.
+SaaS (Management),Appointment Management,Admin Booking (Manual),Doctor/Secretary manually adding an appointment (phone/walk-in).
+,,Cancellation / Reschedule,Managing changes to existing appointments.
+,,Patient Booking,Managing appointments added by a patient
+,Calendar Configuration,Blocking Slots / Holidays,Managing time off or breaks.
+,,Insurance Plug-in,Configure insurance plug-in for accepted providers
+,,Setup / Opening Hours,Doctor setting up their weekly schedule or locations.
+,,Visit Duration / Price / Services / Insurance,"Configuring duration, service prices, accepted insurance plans, and available services for patients"
+,,Recover Deleted Calendar,Recovering deleted calendar information
+,DP Payments,Commissions & Fees,Questions about the transaction rates
+,,Disputes / Chargebacks,Patient called their bank to reverse the charge.
+,,Payouts & Settlements,Missing transfers to the doctor's bank account.
+,,Refunds,Issues processing a refund back to a patient.
+,,Setup & KYC,Identity verification/Onboarding for payments.
+,,Transaction / Charge Error,Technical error when trying to charge a patient's card.
+,EHR (Clinical),Attachments / Files,"Uploading or viewing X-rays, PDFs, or documents."
+,,Patient Cards / History,Issues with the digital patient file or medical history.
+,,E-Prescription,Issues generating electronic prescriptions.
+,,Episodes,
+,,P1,
+,,Rempe (ES only),Managing the REMPe platform for electronic prescriptions
+,Integrations (External),4Medic,Issues with 4Medic
+,,Apps4Med (DocuMeds),Issues with Apps4Med (DocuMeds)
+,,ArtKlinika,Issues with ArtKlinika
+,,Aurero,Issues with Aurero
+,,Axon,Issues with Axon
+,,BlueNote,Issues with BlueNote
+,,Bluesoft,Issues with Bluesoft
+,,CM Damiana,Issues with CM Damiana
+,,Custom Soft,Issues with Custom Soft
+,,drEleks/Kotrak,Issues with drEleks/Kotrak
+,,drEryk/E-Gabinet,Issues with drEryk/E-Gabinet
+,,EClinica,Issues with EClinica
+,,eGabinet,Issues with eGabinet
+,,Enel-Med,Issues with Enel-Med
+,,eRecepcja,Issues with eRecepcja
+,,Estomed,Issues with Estomed
+,,Eurosoft,Issues with Eurosoft
+,,FELG Dent,Issues with FELG Dent
+,,Gabos,Issues with Gabos
+,,iGabinet,Issues with iGabinet
+,,Interclinic/Infomed,Issues with Interclinic/Infomed
+,,IQDental,Issues with IQDental
+,,LabBit,Issues with LabBit
+,,Logotec,Issues with Logotec
+,,LuxMed,Issues with LuxMed
+,,LuxMed,Issues with LuxMed
+,,MEDChart,Issues with MEDChart
+,,Medfile,Issues with Medfile
+,,MEDI.com / IRIS,Issues with MEDI.com / IRIS
+,,Medicina Direta,Issues with Medicina Direta
+,,Medicus,Issues with Medicus
+,,Medlink24/Medsoft,Issues with Medlink24/Medsoft
+,,Medyc,Issues with Medyc
+,,mMedica,Issues with mMedica
+,,MONI Logotec,Issues with MONI Logotec
+,,MyDr EDM,Issues with MyDr EDM
+,,MyTherapy,Issues with MyTherapy
+,,OpenCare (Komanrod/Antrez),Issues with OpenCare (Komanrod/Antrez)
+,,Optimed NXT,Issues with Optimed NXT
+,,Ortonet,Issues with Ortonet
+,,OSOZ/Kamsoft,Issues with OSOZ/Kamsoft
+,,Payticon,Issues with Payticon
+,,Prescrypto,Issues with Prescrypto
+,,ProAssist,Issues with ProAssist
+,,Prodentis,Issues with Prodentis
+,,PROGMED,Issues with PROGMED
+,,QBS/Qklinika(API),Issues with QBS/Qklinika(API)
+,,Qklinika(legacy),Issues with Qklinika(legacy)
+,,Scal,Issues with Scal
+,,Smartdental 2.0,Issues with Smartdental 2.0
+,,Stenci,Issues with Stenci
+,,Tasy EMR,Issues with Tasy EMR
+,,Unison,Issues with Unison
+,Mobile App,Technical Issues,Issues specific to iOS/Android app.
+,Noa,Audio / Microphone,Issues recording the session (hardware or browser permission).
+,,Integration / Sync,Note failed to attach to the Patient Card or EHR.
+,,Templates / Formatting,Issues with the structure of the generated note.
+,,Transcription Quality,The AI scribe didn't capture the conversation correctly.
+,Patients,Marketing Campaigns,Issues sending bulk messages to patients.
+,,SMS / Email Reminders,Issues with automated appointment reminders.
+,,Notifications,Configure Notifications
+,,Patient Card,Add and manage patient information
+,,Import / Export,Import or export patient information
+,Reporting & Analytics,Income / Revenue Reports,Stats regarding clinic revenue.
+,,Visit / Volume Reports,Stats regarding how many patients were seen.
+,Staff Management,Add/Remove User,"Doctor, Secretary, or Admin access."
+,,User Permissions,"Doctor, Secretary, or Admin permissions."
+,,Modify Clinic Type (Real/Fake),"Modify the clinic type between a real clinic and a ""fake"" clinic (different doctors with same address)"
+,Referral program,,Referral questions and issues
+,Widget,,"""Book Online"" button issues on doctor's site."
+SPAM / Patient Misdirection,Patient Misdirection,,Patients confusing Support for the Doctor.
+,Spam,,Non-support emails.
+Subscription & Sales,Churn,Call Center,Request to churn from Call Center
+,,Clinic Agenda,Request to churn from Clinic Agenda
+,,DP Phone,Request to churn from DP Phone
+,,First Class,Request to churn from First Class
+,,M360,Request to churn from M360
+,,Noa,Request to churn from Noa Notes
+,,Website,Request to churn from Website
+,,Subscription Tier,Request to churn their Subscription
+,Expansion,Call Center,Request to purchase Call Center
+,,Clinic Agenda,Request to purchase Clinic Agenda
+,,DP Phone,Request to purchase DP Phone
+,,First Class,Request to purchase First Class
+,,M360,Request to purchase Media 360
+,,Noa,Request to purchase Noa Notes
+,,Website,Request to purchase Website
+,,Subscription Tier,Request to upgrade their Subscription
+Patientus (DE Only),Technical & Product,Technical Issues,
+,Account & Billing,Billing / Payments,
+,,User Management,
+,,Contract & Sales,
+,Data Privacy (GDPR),Consent / Dispute,
+,,Right to be Forgotten,
