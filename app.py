@@ -78,12 +78,7 @@ def reset_quiz():
 
 
 # --- 5. SIDEBAR NAVIGATION ---
-# --- SIDEBAR LOGO ---
-with st.sidebar:
-    # This displays your PNG at the top of the sidebar
-    st.image("dp_logo.png", use_container_width=True)
-    st.markdown("<h2 style='text-align: center; font-weight: 300;'>Training Portal</h2>", unsafe_allow_html=True)
-    st.divider()
+st.sidebar.title("💎 DP Portal")
 if st.session_state.role == "admin":
     menu = ["Admin Dashboard", "Explanation", "Leaderboard"]
 else:
