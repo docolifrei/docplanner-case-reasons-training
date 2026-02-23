@@ -123,6 +123,22 @@ elif page == "Admin Dashboard":
     st.dataframe(admin_data, use_container_width=True)
 
 elif page == "Practice":
+    # --- CHEAT SHEET IN SIDEBAR (Added back) ---
+    with st.sidebar:
+        st.divider()
+        st.subheader("📖 Quick Reference")
+        search_term = st.text_input("Search taxonomy keywords:")
+
+        # Filter logic
+        if search_term:
+            filtered_df = df[df['Definition / Notes'].str.contains(search_term, case=False, na=False)]
+        else:
+            filtered_df = df.head(5)  # Show first 5 by default to keep sidebar clean
+
+        for _, row in filtered_df.iterrows():
+            with st.expander(f"{row['Case Reason 1 (mandatory)']} > {row['Case Reason 2 (mandatory)']}"):
+                st.write(f"**R3:** {row['Case Reason 3 (optional)']}\n\n**Note:** {row['Definition / Notes']}")
+
     if not st.session_state.user:
         st.warning("Please Login first.")
     elif st.session_state.quiz_complete:
