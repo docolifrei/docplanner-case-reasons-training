@@ -150,7 +150,9 @@ elif page == "Practice":
         st.info(f"**Scenario {st.session_state.current_question + 1}:** {row['Definition / Notes']}")
 
         # Taxonomy Dropdowns
-        r1 = st.selectbox("Reason 1", ["-- Choose --"] + sorted(df['Case Reason 1 (mandatory)'].unique().tolist()))
+        r1 = st.selectbox("Reason 1",
+                          ["-- Choose --"] + sorted(df['Case Reason 1 (mandatory)'].unique().tolist()),
+                          key=f"r1_q{st.session_state.current_question}")
 
         r2 = "-- Choose --"
         r3 = None
@@ -158,16 +160,19 @@ elif page == "Practice":
         if r1 != "-- Choose --":
             options_r2 = sorted(
                 df[df['Case Reason 1 (mandatory)'] == r1]['Case Reason 2 (mandatory)'].unique().tolist())
-            r2 = st.selectbox("Reason 2", ["-- Choose --"] + options_r2)
+            r2 = st.selectbox("Reason 2",
+                              ["-- Choose --"] + options_r2,
+                              key=f"r2_q{st.session_state.current_question}")
 
             if r2 != "-- Choose --":
-                # Check if there are actually any Reason 3 options for this selection
                 r3_options = df[(df['Case Reason 1 (mandatory)'] == r1) &
                                 (df['Case Reason 2 (mandatory)'] == r2)][
                     'Case Reason 3 (optional)'].dropna().unique().tolist()
 
                 if r3_options:
-                    r3 = st.selectbox("Reason 3 (Optional)", ["-- Choose --"] + r3_options)
+                    r3 = st.selectbox("Reason 3 (Optional)",
+                                      ["-- Choose --"] + r3_options,
+                                      key=f"r3_q{st.session_state.current_question}")
 
         if not st.session_state.question_solved:
             if st.button("Submit"):
