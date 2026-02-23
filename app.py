@@ -84,9 +84,14 @@ st.sidebar.divider()
 if st.session_state.role == "admin":
     menu = ["Admin Dashboard", "Explanation", "Leaderboard"]
 else:
-    menu = ["Login", "Explanation", "Practice", "Leaderboard"]
+    menu = ["Explanation", "Practice", "Leaderboard"]
 
 page = st.sidebar.radio("Navigation", menu)
+
+st.sidebar.divider()
+if st.sidebar.button("Logout"):
+    st.session_state.role = None
+    st.rerun()
 
 if st.session_state.role is None:
     # --- ONLY SHOW LOGIN PAGE ---
