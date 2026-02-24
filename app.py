@@ -63,25 +63,15 @@ if 'shuffled_data' not in st.session_state:
 
 
 def get_ai_email(definition):
-    # This prompt is designed for the Gemini 3 Flash model
-    prompt = f"""
-    Write a 2-sentence email from a customer. 
-    Topic: {definition}
-
-    Rules:
-    - Write it like a human would (e.g., 'I can't log in' instead of 'User authentication failure').
-    - NEVER use the phrase 'I am writing to you because'.
-    - Use a name like 'Alex' or 'Jordan'.
-    - DO NOT use the word '{definition}'.
-    """
-
+    # We use the explicit model string that matches the 404 error's expected path
     try:
-        response = model.generate_content(prompt)
-        # If Gemini works, it returns the beautiful AI text
+        # Some library versions prefer just the name, some prefer the path
+        # Let's try the most robust one first:
+        response = model.generate_content(f"Write a 2-sentence customer email for: {definition}")
         return response.text.strip()
     except Exception as e:
-        # If this shows up, it means the API is NOT connected properly
-        return f"⚠️ API Error: {str(e)[:50]}. Check your Gemini API Key in Secrets!"
+        # If it still fails, we'll know if it's still a 404 or something else
+        return f"🚨 API Status: {str(e)}"
 
 def save_score(name, country, score):
     # Manager's Reward Logic: 100=3 logos, 70=2 logos, 40=1 logo
