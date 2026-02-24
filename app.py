@@ -68,15 +68,17 @@ if 'shuffled_data' not in st.session_state:
 
 
 def get_ai_email(definition):
-    # We use the explicit model string that matches the 404 error's expected path
     try:
-        # Some library versions prefer just the name, some prefer the path
-        # Let's try the most robust one first:
-        response = model.generate_content(f"Write a 2-sentence customer email for: {definition}")
+        # We try to generate with the stable model
+        response = model.generate_content(f"Write a short email from a customer about: {definition}")
         return response.text.strip()
     except Exception as e:
-        # If it still fails, we'll know if it's still a 404 or something else
-        return f"🚨 API Status: {str(e)}"
+        # If it still fails, let's list the models we CAN see to fix the 404 forever
+        try:
+            m_list = [m.name for m in genai.list_models()]
+            return f"🚨 Available models on your key: {str(m_list)[:100]}"
+        except:
+            return f"🚨 API Status: {str(e)}"
 
 def save_score(name, country, score):
     # Manager's Reward Logic: 100=3 logos, 70=2 logos, 40=1 logo
