@@ -56,15 +56,16 @@ if 'shuffled_data' not in st.session_state:
 
 
 # --- 4. CORE FUNCTIONS ---
-def save_score(name, score):
+def save_score(name, country, score):
     # Manager's Reward Logic: 100=3 logos, 70=2 logos, 40=1 logo
     asterisk_count = 3 if score >= 100 else (2 if score >= 70 else (1 if score >= 40 else 0))
     try:
         existing_data = conn.read(ttl=0)
-        new_entry = pd.DataFrame([[name, score, asterisk_count]], columns=['Name', 'Score', 'Asterisks'])
+        new_entry = pd.DataFrame([[name, country, score, asterisk_count]],
+                                 columns=['Name', 'Country', 'Score', 'Asterisks'])
         updated_data = pd.concat([existing_data, new_entry], ignore_index=True)
         conn.update(data=updated_data)
-        st.success(f"SSync Complete! You earned {asterisk_count} Docplanner Logos.")
+        st.success(f"Sync Complete! You earned {asterisk_count} Docplanner Logos.")
     except Exception as e:
         st.error(f"GCP Sync Error: {e}")
 
@@ -88,7 +89,7 @@ if st.session_state.role is None:
     with col1:
         u_name = st.text_input("Agent Name")
     with col2:
-        u_market = st.selectbox("Market", ["Spain", "Poland", "Italy", "Brazil", "Mexico", "Global"])
+        u_country = st.selectbox("Country", ["Spain", "Poland", "Italy", "Brazil", "Mexico", "Global"])
 
     u_role = st.radio("Access Level", ["Agent", "Admin Manager"], horizontal=True)
     u_pass = st.text_input("Security Key", type="password") if u_role == "Admin Manager" else ""
@@ -97,10 +98,12 @@ if st.session_state.role is None:
         if u_role == "Admin Manager" and u_pass == "DP2026!":
             st.session_state.role = "admin"
             st.session_state.user = u_name
+            st.session_state.country = u_country
             st.rerun()
         elif u_role == "Agent" and u_name:
             st.session_state.role = "user"
             st.session_state.user = u_name
+            st.session_state.country = u_country
             st.rerun()
     st.markdown('</div>', unsafe_allow_html=True)
 
@@ -226,43 +229,33 @@ else:
                         st.session_state.current_question += 1
                         st.session_state.question_solved = False
                     else:
-                        save_score(st.session_state.user, st.session_state.score)
+                        save_score(st.session_state.user, st.session_state.country, st.session_state.score)
                         st.session_state.quiz_complete = True
                     st.rerun()
 
-
+    elif page == "Explanation":
+        st.header("📖 Taxonomy Guide")
+        st.write("Full taxonomy details for reference:")
+        st.dataframe(df, use_container_width=True)
 
 
 
     elif page == "Leaderboard":
 
         st.header("🏆 Wall of Fame")
-
-        # PASTE THE LINK YOU JUST COPIED BETWEEN THE QUOTES BELOW
-
         csv_url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQlvQW_QsBwRB3ZWmK7wibMhW7oeBqbpd8osTvPprhxXROfpc01x0JwcptMB4oOFHMcB0V-IHvvmnU2/pub?gid=0&single=true&output=csv"
 
         try:
 
-            # This bypasses all Google authentication and "Transport" errors
-
             df_leader = pd.read_csv(csv_url)
 
             if not df_leader.empty:
-
-                # Sort by Score (Ensure your column is named exactly 'Score')
-
                 df_leader = df_leader.sort_values(by="Score", ascending=False)
+                display_df = df_leader[['Name', 'Country', 'Score', 'Asterisks']]
+                display_df.columns = ['Agent Name', 'Country', 'Points', 'Logos']
 
-                st.table(df_leader)
-
+                st.table(display_df.head(15))
             else:
-
                 st.info("The board is currently empty!")
-
-
         except Exception as e:
-
-            st.error("Could not read the leaderboard file.")
-
-            st.write("Please ensure you chose 'Comma-separated values (.csv)' when publishing.")
+            st.error("Waiting for first score with Country data to be saved...")
