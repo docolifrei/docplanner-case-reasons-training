@@ -112,9 +112,9 @@ else:
         st.divider()
 
         if st.session_state.role == "admin":
-            menu = ["Admin Dashboard", "Practice", "Explanation", "Leaderboard"]
+            menu = ["Admin Dashboard", "Explanation", "Practice", "Leaderboard"]
         else:
-            menu = ["Practice", "Explanation", "Leaderboard"]
+            menu = ["Explanation", "Practice", "Leaderboard"]
 
         page = st.radio("Navigation", menu, key="main_nav")
 
