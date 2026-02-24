@@ -126,114 +126,114 @@ else:
             st.rerun()
 
     # --- PAGE ROUTING ENGINE ---
-if page == "Admin Dashboard":
-    st.markdown('<div class="glass-card">', unsafe_allow_html=True)
-    st.header("⚙️ Admin Controls")
-    c1, c2 = st.columns(2)
-    c1.metric("Sheets API", "Connected", "Active")
-    c2.metric("Project ID", st.secrets["connections"]["gsheets"]["project_id"])
-    st.write(
-        f"**Admin:** {st.session_state.user} | **Cloud Identity:** {st.secrets['connections']['gsheets']['client_email']}")
-    st.markdown('</div>', unsafe_allow_html=True)
+    if page == "Admin Dashboard":
+        st.markdown('<div class="glass-card">', unsafe_allow_html=True)
+        st.header("⚙️ Admin Controls")
+        c1, c2 = st.columns(2)
+        c1.metric("Sheets API", "Connected", "Active")
+        c2.metric("Project ID", st.secrets["connections"]["gsheets"]["project_id"])
+        st.write(
+            f"**Admin:** {st.session_state.user} | **Cloud Identity:** {st.secrets['connections']['gsheets']['client_email']}")
+        st.markdown('</div>', unsafe_allow_html=True)
 
-    st.write("### Global Training Audit")
-    admin_data = conn.read(ttl=0)
-    st.dataframe(admin_data, use_container_width=True)
+        st.write("### Global Training Audit")
+        admin_data = conn.read(ttl=0)
+        st.dataframe(admin_data, use_container_width=True)
 
-elif page == "Practice":
-    # --- CHEAT SHEET IN SIDEBAR (Added back) ---
-    with st.sidebar:
-        st.divider()
-        st.subheader("📖 Quick Reference")
-        search_term = st.text_input("Search taxonomy keywords:")
+    elif page == "Practice":
+        # --- CHEAT SHEET IN SIDEBAR (Added back) ---
+        with st.sidebar:
+            st.divider()
+            st.subheader("📖 Quick Reference")
+            search_term = st.text_input("Search taxonomy keywords:")
 
-        # Filter logic
-        if search_term:
-            filtered_df = df[df['Definition / Notes'].str.contains(search_term, case=False, na=False)]
+            # Filter logic
+            if search_term:
+                filtered_df = df[df['Definition / Notes'].str.contains(search_term, case=False, na=False)]
+            else:
+                filtered_df = df.head(5)  # Show first 5 by default to keep sidebar clean
+
+            for _, row in filtered_df.iterrows():
+                with st.expander(f"{row['Case Reason 1 (mandatory)']} > {row['Case Reason 2 (mandatory)']}"):
+                    st.write(f"**R3:** {row['Case Reason 3 (optional)']}\n\n**Note:** {row['Definition / Notes']}")
+
+        if not st.session_state.user:
+            st.warning("Please Login first.")
+        elif st.session_state.quiz_complete:
+            st.balloons()
+            st.success(f"Well done {st.session_state.user}! Score: {st.session_state.score}")
+            if st.button("Restart"): reset_quiz()
         else:
-            filtered_df = df.head(5)  # Show first 5 by default to keep sidebar clean
+            row = st.session_state.shuffled_data.iloc[st.session_state.current_question]
+            st.info(f"**Scenario {st.session_state.current_question + 1}:** {row['Definition / Notes']}")
 
-        for _, row in filtered_df.iterrows():
-            with st.expander(f"{row['Case Reason 1 (mandatory)']} > {row['Case Reason 2 (mandatory)']}"):
-                st.write(f"**R3:** {row['Case Reason 3 (optional)']}\n\n**Note:** {row['Definition / Notes']}")
+            # Taxonomy Dropdowns
+            r1 = st.selectbox("Reason 1",
+                              ["-- Choose --"] + sorted(df['Case Reason 1 (mandatory)'].unique().tolist()),
+                              key=f"r1_q{st.session_state.current_question}")
 
-    if not st.session_state.user:
-        st.warning("Please Login first.")
-    elif st.session_state.quiz_complete:
-        st.balloons()
-        st.success(f"Well done {st.session_state.user}! Score: {st.session_state.score}")
-        if st.button("Restart"): reset_quiz()
-    else:
-        row = st.session_state.shuffled_data.iloc[st.session_state.current_question]
-        st.info(f"**Scenario {st.session_state.current_question + 1}:** {row['Definition / Notes']}")
+            r2 = "-- Choose --"
+            r3 = None
 
-        # Taxonomy Dropdowns
-        r1 = st.selectbox("Reason 1",
-                          ["-- Choose --"] + sorted(df['Case Reason 1 (mandatory)'].unique().tolist()),
-                          key=f"r1_q{st.session_state.current_question}")
+            if r1 != "-- Choose --":
+                options_r2 = sorted(
+                    df[df['Case Reason 1 (mandatory)'] == r1]['Case Reason 2 (mandatory)'].unique().tolist())
+                r2 = st.selectbox("Reason 2",
+                                  ["-- Choose --"] + options_r2,
+                                  key=f"r2_q{st.session_state.current_question}")
 
-        r2 = "-- Choose --"
-        r3 = None
+                if r2 != "-- Choose --":
+                    r3_options = df[(df['Case Reason 1 (mandatory)'] == r1) &
+                                    (df['Case Reason 2 (mandatory)'] == r2)][
+                        'Case Reason 3 (optional)'].dropna().unique().tolist()
 
-        if r1 != "-- Choose --":
-            options_r2 = sorted(
-                df[df['Case Reason 1 (mandatory)'] == r1]['Case Reason 2 (mandatory)'].unique().tolist())
-            r2 = st.selectbox("Reason 2",
-                              ["-- Choose --"] + options_r2,
-                              key=f"r2_q{st.session_state.current_question}")
+                    if r3_options:
+                        r3 = st.selectbox("Reason 3 (Optional)",
+                                          ["-- Choose --"] + r3_options,
+                                          key=f"r3_q{st.session_state.current_question}")
 
-            if r2 != "-- Choose --":
-                r3_options = df[(df['Case Reason 1 (mandatory)'] == r1) &
-                                (df['Case Reason 2 (mandatory)'] == r2)][
-                    'Case Reason 3 (optional)'].dropna().unique().tolist()
+            if not st.session_state.question_solved:
+                if st.button("Submit"):
+                    # Check if R1 and R2 match
+                    check_r1 = (r1 == row['Case Reason 1 (mandatory)'])
+                    check_r2 = (r2 == row['Case Reason 2 (mandatory)'])
 
-                if r3_options:
-                    r3 = st.selectbox("Reason 3 (Optional)",
-                                      ["-- Choose --"] + r3_options,
-                                      key=f"r3_q{st.session_state.current_question}")
+                    # Check R3 only if the correct answer actually HAS an R3
+                    correct_r3 = row['Case Reason 3 (optional)']
+                    if pd.isna(correct_r3):
+                        check_r3 = True  # No R3 required for this scenario
+                    else:
+                        check_r3 = (r3 == correct_r3)
 
-        if not st.session_state.question_solved:
-            if st.button("Submit"):
-                # Check if R1 and R2 match
-                check_r1 = (r1 == row['Case Reason 1 (mandatory)'])
-                check_r2 = (r2 == row['Case Reason 2 (mandatory)'])
-
-                # Check R3 only if the correct answer actually HAS an R3
-                correct_r3 = row['Case Reason 3 (optional)']
-                if pd.isna(correct_r3):
-                    check_r3 = True  # No R3 required for this scenario
-                else:
-                    check_r3 = (r3 == correct_r3)
-
-                if check_r1 and check_r2 and check_r3:
-                    st.session_state.score += 10
-                    st.session_state.question_solved = True
+                    if check_r1 and check_r2 and check_r3:
+                        st.session_state.score += 10
+                        st.session_state.question_solved = True
+                        st.rerun()
+                    else:
+                        st.session_state.score -= 5
+                        st.error("Incorrect path. Review the Sidebar Reference and try again!")
+            else:
+                st.success("Correct!")
+                if st.button("Next Scenario"):
+                    if st.session_state.current_question + 1 < 10:
+                        st.session_state.current_question += 1
+                        st.session_state.question_solved = False
+                    else:
+                        save_score(st.session_state.user, st.session_state.score)
+                        st.session_state.quiz_complete = True
                     st.rerun()
-                else:
-                    st.session_state.score -= 5
-                    st.error("Incorrect path. Review the Sidebar Reference and try again!")
-        else:
-            st.success("Correct!")
-            if st.button("Next Scenario"):
-                if st.session_state.current_question + 1 < 10:
-                    st.session_state.current_question += 1
-                    st.session_state.question_solved = False
-                else:
-                    save_score(st.session_state.user, st.session_state.score)
-                    st.session_state.quiz_complete = True
-                st.rerun()
 
-elif page == "Leaderboard":
-    st.title("🏆 Wall of Fame")
-    # data = conn.read(ttl="1m").sort_values("Score", ascending=False)
-    try:
-        # We remove the ttl="1m" temporarily to see if a fresh, un-cached read fixes the handshake
-        data = conn.read().sort_values("Score", ascending=False)
-    except Exception as e:
-        st.error("Google Connection is resting. Please try again in 2 minutes.")
-        data = pd.DataFrame()  # Prevents the rest of the page from crashing
-    for _, row in data.head(10).iterrows():
-        st.markdown(f'<div class="glass-card"><b>{row["Name"]}</b> - {row["Score"]} pts</div>', unsafe_allow_html=True)
-        cols = st.columns(12)
-        for i in range(int(row["Asterisks"])):
-            with cols[i]: st.image("dp_logo.png", width=30)
+    elif page == "Leaderboard":
+        st.title("🏆 Wall of Fame")
+        # data = conn.read(ttl="1m").sort_values("Score", ascending=False)
+        try:
+            # We remove the ttl="1m" temporarily to see if a fresh, un-cached read fixes the handshake
+            data = conn.read().sort_values("Score", ascending=False)
+        except Exception as e:
+            st.error("Google Connection is resting. Please try again in 2 minutes.")
+            data = pd.DataFrame()  # Prevents the rest of the page from crashing
+        for _, row in data.head(10).iterrows():
+            st.markdown(f'<div class="glass-card"><b>{row["Name"]}</b> - {row["Score"]} pts</div>', unsafe_allow_html=True)
+            cols = st.columns(12)
+            for i in range(int(row["Asterisks"])):
+                with cols[i]: st.image("dp_logo.png", width=30)
