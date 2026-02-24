@@ -224,34 +224,44 @@ else:
                     st.rerun()
 
 
+
     elif page == "Leaderboard":
 
         st.header("🏆 Wall of Fame")
 
+        # 1. Manual Cache Clear Button (This fixes the "Transport" hang)
+
+        if st.button("🔄 Force Refresh Connection"):
+            st.cache_data.clear()
+
+            st.rerun()
+
         try:
 
-            # 1. Get the Sheet ID from your URL
+            # 2. Use a direct URL but with a 'cache-busting' timestamp
 
-            # The URL looks like: https://docs.google.com/spreadsheets/d/ID_HERE/edit
+            import time
 
             sheet_url = st.secrets["connections"]["gsheets"]["spreadsheet"]
-
-            # 2. Convert the URL to a direct CSV download link
 
             csv_url = sheet_url.replace("/edit#gid=", "/export?format=csv&gid=")
 
             if "/edit" in csv_url and "/export" not in csv_url:
                 csv_url = csv_url.replace("/edit", "/export?format=csv")
 
-            # 3. Read directly with Pandas (Bypasses the Transport layer)
+            # Adding a timestamp at the end forces Google to give us a NEW version
 
-            leaderboard_df = pd.read_csv(csv_url)
+            csv_url += f"&t={int(time.time())}"
+
+            # 3. Fetch with a timeout to prevent the 'TransportError' hang
+
+            leaderboard_df = pd.read_csv(csv_url, timeout=10)
 
             if not leaderboard_df.empty:
 
                 leaderboard_df = leaderboard_df.sort_values(by="Score", ascending=False)
 
-                st.dataframe(leaderboard_df, use_container_width=True)
+                st.table(leaderboard_df)  # Using st.table is simpler/more stable than st.dataframe
 
             else:
 
@@ -260,16 +270,6 @@ else:
 
         except Exception as e:
 
-            st.error("Standard connection failed. Reverting to backup access...")
+            st.error(f"Connection Error: {str(e)}")
 
-            # Backup: Try the original connection one last time with no cache
-
-            try:
-
-                data = conn.read(ttl=0)
-
-                st.dataframe(data.sort_values("Score", ascending=False))
-
-            except:
-
-                st.warning("Please ensure your Google Sheet is set to 'Anyone with the link can view'.")
+            st.warning("Please check: Is the Google Sheet 'Share' setting set to 'Anyone with the link can view'?")
