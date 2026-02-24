@@ -169,19 +169,13 @@ else:
         # --- SIDEBAR SEARCH stays as it is ---
 
         with st.sidebar:
-
             st.divider()
-
             st.subheader("📖 Quick Reference")
-
             search_term = st.text_input("Search taxonomy keywords:")
-
             if search_term:
-
                 filtered_df = df[df['Definition / Notes'].str.contains(search_term, case=False, na=False)]
 
             else:
-
                 filtered_df = df.head(5)
 
             for _, row_sidebar in filtered_df.iterrows():
@@ -193,43 +187,25 @@ else:
         # --- MAIN CONTENT LOGIC ---
 
         if not st.session_state.user:
-
             st.warning("Please Login first.")
 
-
         elif st.session_state.quiz_complete:
-
             st.balloons()
-
             st.success(f"Well done {st.session_state.user}! Score: {st.session_state.score}")
-
             if st.button("Restart"): reset_quiz()
-
 
 
         else:
 
             # THIS SECTION NOW PULLS DIRECTLY FROM YOUR DATA
-
             row = st.session_state.shuffled_data.iloc[st.session_state.current_question]
-
-            # Use the 'Definition / Notes' column as the inquiry text
-
-            # We don't need the spinner or complex caching anymore
-
             current_email = get_ai_email(row['Definition / Notes'])
-
             st.markdown('<div class="glass-card">', unsafe_allow_html=True)
-
             st.subheader(f"Scenario {st.session_state.current_question + 1}")
-
             # This displays the text from your CSV instantly
-
             st.write(current_email)
-
             st.markdown('</div>', unsafe_allow_html=True)
 
-            # --- THE REST OF YOUR DROPDOWNS AND SUBMISSION LOGIC STAYS THE SAME ---
 
             # --- TAXONOMY DROPDOWNS ---
 
