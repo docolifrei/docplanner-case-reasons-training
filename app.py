@@ -175,99 +175,150 @@ else:
         except Exception as e:
             st.error("Could not load audit data. Please check the 'Publish to Web' link.")
 
+
     elif page == "Practice":
-        # --- CHEAT SHEET IN SIDEBAR (Added back) ---
+
+        # --- SIDEBAR SEARCH stays as it is ---
+
         with st.sidebar:
+
             st.divider()
+
             st.subheader("📖 Quick Reference")
+
             search_term = st.text_input("Search taxonomy keywords:")
 
-            # Filter logic
             if search_term:
-                filtered_df = df[df['Definition / Notes'].str.contains(search_term, case=False, na=False)]
-            else:
-                filtered_df = df.head(5)  # Show first 5 by default to keep sidebar clean
 
-            for _, row in filtered_df.iterrows():
-                with st.expander(f"{row['Case Reason 1 (mandatory)']} > {row['Case Reason 2 (mandatory)']}"):
-                    st.write(f"**R3:** {row['Case Reason 3 (optional)']}\n\n**Note:** {row['Definition / Notes']}")
+                filtered_df = df[df['Definition / Notes'].str.contains(search_term, case=False, na=False)]
+
+            else:
+
+                filtered_df = df.head(5)
+
+            for _, row_sidebar in filtered_df.iterrows():
+                with st.expander(
+                        f"{row_sidebar['Case Reason 1 (mandatory)']} > {row_sidebar['Case Reason 2 (mandatory)']}"):
+                    st.write(
+                        f"**R3:** {row_sidebar['Case Reason 3 (optional)']}\n\n**Note:** {row_sidebar['Definition / Notes']}")
+
+        # --- MAIN CONTENT LOGIC ---
 
         if not st.session_state.user:
+
             st.warning("Please Login first.")
+
+
         elif st.session_state.quiz_complete:
+
             st.balloons()
+
             st.success(f"Well done {st.session_state.user}! Score: {st.session_state.score}")
+
             if st.button("Restart"): reset_quiz()
-            else:
-                row = st.session_state.shuffled_data.iloc[st.session_state.current_question]
 
-                # Store the AI email so it doesn't change on every rerun
-                cache_key = f"ai_email_{st.session_state.current_question}"
-                if cache_key not in st.session_state:
-                    with st.spinner("🤖 AI Customer is writing an email..."):
-                        st.session_state[cache_key] = get_ai_email(row['Definition / Notes'])
 
-                current_email = st.session_state[cache_key]
+        else:
 
-                st.markdown('<div class="glass-card">', unsafe_allow_html=True)
-                st.subheader("✉️ Incoming Customer Inquiry")
-                st.write(current_email)
-                st.markdown('</div>', unsafe_allow_html=True)
+            # THIS SECTION NOW RUNS CORRECTLY DURING THE QUIZ
 
-            # Taxonomy Dropdowns
+            row = st.session_state.shuffled_data.iloc[st.session_state.current_question]
+
+            # AI Email Generation
+
+            cache_key = f"ai_email_{st.session_state.current_question}"
+
+            if cache_key not in st.session_state:
+                with st.spinner("🤖 AI Customer is writing an email..."):
+                    st.session_state[cache_key] = get_ai_email(row['Definition / Notes'])
+
+            current_email = st.session_state[cache_key]
+
+            st.markdown('<div class="glass-card">', unsafe_allow_html=True)
+
+            st.subheader(f"Scenario {st.session_state.current_question + 1}")
+
+            st.write(current_email)
+
+            st.markdown('</div>', unsafe_allow_html=True)
+
+            # --- TAXONOMY DROPDOWNS ---
+
             r1 = st.selectbox("Reason 1",
+
                               ["-- Choose --"] + sorted(df['Case Reason 1 (mandatory)'].unique().tolist()),
+
                               key=f"r1_q{st.session_state.current_question}")
 
             r2 = "-- Choose --"
+
             r3 = None
 
             if r1 != "-- Choose --":
+
                 options_r2 = sorted(
                     df[df['Case Reason 1 (mandatory)'] == r1]['Case Reason 2 (mandatory)'].unique().tolist())
-                r2 = st.selectbox("Reason 2",
-                                  ["-- Choose --"] + options_r2,
+
+                r2 = st.selectbox("Reason 2", ["-- Choose --"] + options_r2,
                                   key=f"r2_q{st.session_state.current_question}")
 
                 if r2 != "-- Choose --":
+
                     r3_options = df[(df['Case Reason 1 (mandatory)'] == r1) &
+
                                     (df['Case Reason 2 (mandatory)'] == r2)][
                         'Case Reason 3 (optional)'].dropna().unique().tolist()
 
                     if r3_options:
-                        r3 = st.selectbox("Reason 3 (Optional)",
-                                          ["-- Choose --"] + r3_options,
+                        r3 = st.selectbox("Reason 3 (Optional)", ["-- Choose --"] + r3_options,
                                           key=f"r3_q{st.session_state.current_question}")
 
+            # --- SUBMISSION LOGIC ---
+
             if not st.session_state.question_solved:
-                if st.button("Submit"):
-                    # Check if R1 and R2 match
+
+                if st.button("Submit Answer"):
+
                     check_r1 = (r1 == row['Case Reason 1 (mandatory)'])
+
                     check_r2 = (r2 == row['Case Reason 2 (mandatory)'])
 
-                    # Check R3 only if the correct answer actually HAS an R3
                     correct_r3 = row['Case Reason 3 (optional)']
-                    if pd.isna(correct_r3):
-                        check_r3 = True  # No R3 required for this scenario
-                    else:
-                        check_r3 = (r3 == correct_r3)
+
+                    check_r3 = True if pd.isna(correct_r3) else (r3 == correct_r3)
 
                     if check_r1 and check_r2 and check_r3:
+
                         st.session_state.score += 10
+
                         st.session_state.question_solved = True
+
                         st.rerun()
+
                     else:
+
                         st.session_state.score -= 5
+
                         st.error("Incorrect path. Review the Sidebar Reference and try again!")
+
             else:
+
                 st.success("Correct!")
+
                 if st.button("Next Scenario"):
+
                     if st.session_state.current_question + 1 < 10:
+
                         st.session_state.current_question += 1
+
                         st.session_state.question_solved = False
+
                     else:
+
                         save_score(st.session_state.user, st.session_state.country, st.session_state.score)
+
                         st.session_state.quiz_complete = True
+
                     st.rerun()
 
     elif page == "Explanation":
