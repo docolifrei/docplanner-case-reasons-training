@@ -130,15 +130,22 @@ else:
         st.markdown('<div class="glass-card">', unsafe_allow_html=True)
         st.header("⚙️ Admin Controls")
         c1, c2 = st.columns(2)
-        c1.metric("Sheets API", "Connected", "Active")
-        c2.metric("Project ID", st.secrets["connections"]["gsheets"]["project_id"])
-        st.write(
-            f"**Admin:** {st.session_state.user} | **Cloud Identity:** {st.secrets['connections']['gsheets']['client_email']}")
+        c1.metric("Status", "Online", "Stable")
+        # c2.metric("Project ID", "case-reasons-training") # Simplified to avoid secret errors
+        st.write(f"**Admin:** {st.session_state.user}")
         st.markdown('</div>', unsafe_allow_html=True)
 
         st.write("### Global Training Audit")
-        admin_data = conn.read(ttl=0)
-        st.dataframe(admin_data, use_container_width=True)
+
+        # Use the SAME published CSV link we used for the Leaderboard
+        csv_url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQlvQW_QsBwRB3ZWmK7wibMhW7oeBqbpd8osTvPprhxXROfpc01x0JwcptMB4oOFHMcB0V-IHvvmnU2/pub?gid=0&single=true&output=csv"
+
+        try:
+            # Direct read bypasses the 'TransportError'
+            admin_data = pd.read_csv(csv_url)
+            st.dataframe(admin_data, use_container_width=True)
+        except Exception as e:
+            st.error("Could not load audit data. Please check the 'Publish to Web' link.")
 
     elif page == "Practice":
         # --- CHEAT SHEET IN SIDEBAR (Added back) ---
