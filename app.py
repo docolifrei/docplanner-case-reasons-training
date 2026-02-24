@@ -4,7 +4,7 @@ from streamlit_gsheets import GSheetsConnection
 import google.generativeai as genai
 
 genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
-model = genai.GenerativeModel('gemini-1.5-pro-latest')
+model = genai.GenerativeModel('gemini-1.0-pro')
 try:
     available_models = [m.name for m in genai.list_models()]
     print(f"DEBUG - Available Models: {available_models}")
