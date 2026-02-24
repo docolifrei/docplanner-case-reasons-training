@@ -65,15 +65,15 @@ if 'shuffled_data' not in st.session_state:
 def get_ai_email(definition):
     api_key = st.secrets["GEMINI_API_KEY"]
 
-    # Switch to V1 STABLE and use the LATEST alias
-    url = f"https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash-latest:generateContent?key={api_key}"
+    # 2026 Current Production Models: gemini-2.5-flash or gemini-3-flash
+    # Using 'gemini-3-flash' as it is the current frontier-class standard
+    url = f"https://generativelanguage.googleapis.com/v1/models/gemini-3-flash:generateContent?key={api_key}"
 
     headers = {'Content-Type': 'application/json'}
-
     payload = {
         "contents": [{
             "parts": [{
-                "text": f"Context: You are a customer. Task: Write a 2-sentence email about: {definition}. Tone: Natural. Rules: Do not use the words from the description."
+                "text": f"Context: Customer email. Task: Rewrite '{definition}' as a 2-sentence human inquiry. Rules: Be realistic, avoid technical jargon."
             }]
         }]
     }
@@ -85,8 +85,14 @@ def get_ai_email(definition):
             result = response.json()
             return result['candidates'][0]['content']['parts'][0]['text'].strip()
         else:
-            # This will show us if V1 also gives a 404 or a different error (like 403)
-            return f"🚨 API Status {response.status_code}: {response.text[:50]}"
+            # If gemini-3-flash is still in preview, try the stable gemini-2.5-flash
+            fallback_url = url.replace("gemini-3-flash", "gemini-2.5-flash")
+            response = requests.post(fallback_url, headers=headers, json=payload, timeout=10)
+            if response.status_code == 200:
+                result = response.json()
+                return result['candidates'][0]['content']['parts'][0]['text'].strip()
+
+            return f"🚨 API Status {response.status_code}: {response.text[:100]}"
 
     except Exception as e:
         return f"🚨 Connection Failed: {str(e)}"
