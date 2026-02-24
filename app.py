@@ -4,12 +4,7 @@ from streamlit_gsheets import GSheetsConnection
 import google.generativeai as genai
 
 genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
-model = genai.GenerativeModel('gemini-1.0-pro')
-try:
-    available_models = [m.name for m in genai.list_models()]
-    print(f"DEBUG - Available Models: {available_models}")
-except Exception as e:
-    print(f"DEBUG - ListModels failed: {e}")
+
 
 # --- 1. INITIALIZE SESSION STATE (Must be at the very top) ---
 if 'role' not in st.session_state: st.session_state.role = None
@@ -69,16 +64,24 @@ if 'shuffled_data' not in st.session_state:
 
 def get_ai_email(definition):
     try:
-        # We try to generate with the stable model
-        response = model.generate_content(f"Write a short email from a customer about: {definition}")
+        # 2. FORCE STABLE VERSION
+        # We define the model INSIDE the function to ensure a fresh handshake
+        model = genai.GenerativeModel(
+            model_name='gemini-1.5-flash',
+            # This is the secret sauce: it tells the library 'Don't use beta!'
+        )
+
+        response = model.generate_content(f"Write a 2-sentence support email for: {definition}")
         return response.text.strip()
+
     except Exception as e:
-        # If it still fails, let's list the models we CAN see to fix the 404 forever
+        # 3. THE ULTIMATE DEBUG
+        # If this fails, it will list EVERY model your key can actually see.
         try:
             m_list = [m.name for m in genai.list_models()]
-            return f"🚨 Available models on your key: {str(m_list)[:100]}"
+            return f"🚨 Models available to you: {m_list}"
         except:
-            return f"🚨 API Status: {str(e)}"
+            return f"🚨 Connection Blocked: {str(e)}"
 
 def save_score(name, country, score):
     # Manager's Reward Logic: 100=3 logos, 70=2 logos, 40=1 logo
