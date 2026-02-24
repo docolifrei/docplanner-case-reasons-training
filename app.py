@@ -108,7 +108,7 @@ def reset_quiz():
 if st.session_state.role is None:
     # ONLY SHOW LOGIN PAGE - NO SIDEBAR HERE
     st.markdown('<div class="glass-card">', unsafe_allow_html=True)
-    st.title("🛡️ Docplanner Training Access")
+    st.title("🛡️ DocPlanner Training Access")
 
     col1, col2 = st.columns(2)
     with col1:
