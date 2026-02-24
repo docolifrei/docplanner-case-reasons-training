@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 from streamlit_gsheets import GSheetsConnection
+import requests
 
 # Multi-language UI Labels (Core Taxonomy remains in English)
 LANGUAGES = {
@@ -139,7 +140,29 @@ if 'shuffled_data' not in st.session_state:
 
 
 # --- 4. CORE FUNCTIONS ---
+def translate_text(text, target_language):
+    # If the target is already English, no need to call the API
+    if target_language == "English":
+        return text
 
+    api_key = st.secrets["GEMINI_API_KEY"]
+    url = f"https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash-latest:generateContent?key={api_key}"
+
+    payload = {
+        "contents": [{
+            "parts": [{
+                "text": f"Translate the following customer inquiry into {target_language}. Output ONLY the translated text: {text}"
+            }]
+        }]
+    }
+
+    try:
+        response = requests.post(url, json=payload, timeout=5)
+        if response.status_code == 200:
+            return response.json()['candidates'][0]['content']['parts'][0]['text'].strip()
+        return text  # Fallback to English if API fails
+    except:
+        return text
 
 def get_ai_email(definition):
     # This replaces the AI call with the actual data from your CSV
@@ -280,10 +303,20 @@ else:
             # THIS SECTION NOW PULLS DIRECTLY FROM YOUR DATA
             row = st.session_state.shuffled_data.iloc[st.session_state.current_question]
             current_email = get_ai_email(row['Definition / Notes'])
+
             st.markdown('<div class="glass-card">', unsafe_allow_html=True)
             st.subheader(f"{t['scenario_prefix']} {st.session_state.current_question + 1}")
-            # This displays the text from your CSV instantly
-            st.write(current_email)
+
+            # Checkbox to trigger translation
+            do_translate = st.checkbox(f"Translate to {selected_lang}",
+                                       key=f"trans_{st.session_state.current_question}")
+
+            if do_translate and selected_lang != "English":
+                translated_email = translate_text(current_email, selected_lang)
+                st.write(translated_email)
+            else:
+                st.write(current_email)
+
             st.markdown('</div>', unsafe_allow_html=True)
 
 
