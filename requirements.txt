@@ -3,3 +3,5 @@ pandas
 st-gsheets-connection
 google-cloud-aiplatform
 google-auth
+google-generativeai
+google

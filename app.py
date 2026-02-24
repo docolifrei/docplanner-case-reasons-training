@@ -1,6 +1,11 @@
 import streamlit as st
 import pandas as pd
 from streamlit_gsheets import GSheetsConnection
+import google.generativeai as genai
+
+# Configure Gemini
+genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
+model = genai.GenerativeModel('gemini-1.5-flash')
 
 # --- 1. INITIALIZE SESSION STATE (Must be at the very top) ---
 if 'role' not in st.session_state: st.session_state.role = None
@@ -56,6 +61,26 @@ if 'shuffled_data' not in st.session_state:
 
 
 # --- 4. CORE FUNCTIONS ---
+
+
+def get_ai_email(definition):
+    # Using the flash model for speed
+    prompt = f"""
+    Act as a customer contacting Docplanner support. 
+    Write a short, realistic email based on this internal scenario: "{definition}".
+
+    Instructions:
+    - Vary the tone (sometimes polite, sometimes a bit stressed).
+    - Use natural language, not technical taxonomy words.
+    - Keep it under 50 words.
+    - End with a name like 'Maria', 'Luca', or 'Piotr'.
+    """
+    try:
+        response = model.generate_content(prompt)
+        return response.text
+    except Exception:
+        return f"Hello, I need help with {definition}. Can you please assist?"
+
 def save_score(name, country, score):
     # Manager's Reward Logic: 100=3 logos, 70=2 logos, 40=1 logo
     asterisk_count = 3 if score >= 100 else (2 if score >= 70 else (1 if score >= 40 else 0))
@@ -173,9 +198,21 @@ else:
             st.balloons()
             st.success(f"Well done {st.session_state.user}! Score: {st.session_state.score}")
             if st.button("Restart"): reset_quiz()
-        else:
-            row = st.session_state.shuffled_data.iloc[st.session_state.current_question]
-            st.info(f"**Scenario {st.session_state.current_question + 1}:** {row['Definition / Notes']}")
+            else:
+                row = st.session_state.shuffled_data.iloc[st.session_state.current_question]
+
+                # Store the AI email so it doesn't change on every rerun
+                cache_key = f"ai_email_{st.session_state.current_question}"
+                if cache_key not in st.session_state:
+                    with st.spinner("🤖 AI Customer is writing an email..."):
+                        st.session_state[cache_key] = get_ai_email(row['Definition / Notes'])
+
+                current_email = st.session_state[cache_key]
+
+                st.markdown('<div class="glass-card">', unsafe_allow_html=True)
+                st.subheader("✉️ Incoming Customer Inquiry")
+                st.write(current_email)
+                st.markdown('</div>', unsafe_allow_html=True)
 
             # Taxonomy Dropdowns
             r1 = st.selectbox("Reason 1",
