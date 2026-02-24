@@ -226,14 +226,22 @@ else:
     elif page == "Leaderboard":
         st.title("🏆 Wall of Fame")
         # data = conn.read(ttl="1m").sort_values("Score", ascending=False)
+
+        st.cache_data.clear()
+
         try:
-            # We remove the ttl="1m" temporarily to see if a fresh, un-cached read fixes the handshake
-            data = conn.read().sort_values("Score", ascending=False)
+            # Re-establish connection locally to bypass any stuck global objects
+            fresh_conn = st.connection("gsheets", type=GSheetsConnection)
+            leaderboard_df = fresh_conn.read(ttl=0)  # ttl=0 forces it to NOT use old data
+
+            if not leaderboard_df.empty:
+                # Sort and display
+                leaderboard_df = leaderboard_df.sort_values(by="Score", ascending=False)
+                st.dataframe(leaderboard_df, use_container_width=True)
+            else:
+                st.info("The board is currently empty. Be the first to score!")
+
         except Exception as e:
-            st.error("Google Connection is resting. Please try again in 2 minutes.")
-            data = pd.DataFrame()  # Prevents the rest of the page from crashing
-        for _, row in data.head(10).iterrows():
-            st.markdown(f'<div class="glass-card"><b>{row["Name"]}</b> - {row["Score"]} pts</div>', unsafe_allow_html=True)
-            cols = st.columns(12)
-            for i in range(int(row["Asterisks"])):
-                with cols[i]: st.image("dp_logo.png", width=30)
+            st.error("The Google Sheets link is still being stubborn.")
+            st.warning(
+                "Action needed: Please go to Streamlit Cloud 'Settings' -> 'Secrets' and ensure your 'spreadsheet' URL is correct.")
