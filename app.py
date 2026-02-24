@@ -225,51 +225,50 @@ else:
 
 
 
+
     elif page == "Leaderboard":
 
         st.header("🏆 Wall of Fame")
 
-        # 1. Manual Cache Clear Button (This fixes the "Transport" hang)
+        # 1. HARDCODE YOUR ID HERE (Replace the 'XXXXX' with the ID from Step 1)
 
-        if st.button("🔄 Force Refresh Connection"):
-            st.cache_data.clear()
+        SHEET_ID = "1uYMWkxDxZs0PDh5YmY6kCNwX2C545y-OX4GejXTe3Vo"
 
-            st.rerun()
+        SHEET_NAME = "CR Restructure Agent Score"  # Make sure this matches your tab name exactly!
+
+        # 2. Construct a direct export link
+
+        # This bypasses the Google Auth handshake entirely
+
+        url = f"https://docs.google.com/spreadsheets/d/1uYMWkxDxZs0PDh5YmY6kCNwX2C545y-OX4GejXTe3Vo/gviz/tq?tqx=out:csv&sheet=CR Restructure Agent Score"
 
         try:
 
-            # 2. Use a direct URL but with a 'cache-busting' timestamp
+            # 3. Use standard pandas to read the public link
 
-            import time
+            df_leader = pd.read_csv(url)
 
-            sheet_url = st.secrets["connections"]["gsheets"]["spreadsheet"]
+            if not df_leader.empty:
 
-            csv_url = sheet_url.replace("/edit#gid=", "/export?format=csv&gid=")
+                # Clean up the data and sort
 
-            if "/edit" in csv_url and "/export" not in csv_url:
-                csv_url = csv_url.replace("/edit", "/export?format=csv")
+                df_leader = df_leader.sort_values(by="Score", ascending=False)
 
-            # Adding a timestamp at the end forces Google to give us a NEW version
-
-            csv_url += f"&t={int(time.time())}"
-
-            # 3. Fetch with a timeout to prevent the 'TransportError' hang
-
-            leaderboard_df = pd.read_csv(csv_url, timeout=10)
-
-            if not leaderboard_df.empty:
-
-                leaderboard_df = leaderboard_df.sort_values(by="Score", ascending=False)
-
-                st.table(leaderboard_df)  # Using st.table is simpler/more stable than st.dataframe
+                st.table(df_leader)
 
             else:
 
-                st.info("The board is currently empty.")
+                st.info("No scores found yet!")
 
 
         except Exception as e:
 
-            st.error(f"Connection Error: {str(e)}")
+            st.error("Access Denied by Google.")
 
-            st.warning("Please check: Is the Google Sheet 'Share' setting set to 'Anyone with the link can view'?")
+            st.info("Checklist to fix this:")
+
+            st.write("1. Open the Google Sheet.")
+
+            st.write("2. Click **Share** (Top Right).")
+
+            st.write("3. Change 'Restricted' to **'Anyone with the link'**.")
