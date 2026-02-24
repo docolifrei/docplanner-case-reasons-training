@@ -4,7 +4,7 @@ from streamlit_gsheets import GSheetsConnection
 import google.generativeai as genai
 
 # Configure Gemini
-genai.configure(api_key=st.secrets["AIzaSyB_v6pfwILtj0J1NzTt7Yd3hHhA2sxDuoU"])
+genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
 model = genai.GenerativeModel('gemini-1.5-flash')
 
 # --- 1. INITIALIZE SESSION STATE (Must be at the very top) ---
