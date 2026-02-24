@@ -4,7 +4,7 @@ from streamlit_gsheets import GSheetsConnection
 import google.generativeai as genai
 
 genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
-model = genai.GenerativeModel('models/gemini-1.5-flash')
+model = genai.GenerativeModel('gemini-pro')
 
 # --- 1. INITIALIZE SESSION STATE (Must be at the very top) ---
 if 'role' not in st.session_state: st.session_state.role = None
