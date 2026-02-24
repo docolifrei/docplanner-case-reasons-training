@@ -81,7 +81,7 @@ def get_ai_email(definition):
         return response.text.strip()
     except Exception as e:
         # If this shows up, it means the API is NOT connected properly
-        return f"⚠️ API Error: {str(e)}. Check your Gemini API Key in Secrets!"
+        return f"⚠️ API Error: {str(e)[:50]}. Check your Gemini API Key in Secrets!"
 
 def save_score(name, country, score):
     # Manager's Reward Logic: 100=3 logos, 70=2 logos, 40=1 logo
