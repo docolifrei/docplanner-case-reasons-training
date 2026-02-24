@@ -3,7 +3,6 @@ import pandas as pd
 from streamlit_gsheets import GSheetsConnection
 import google.generativeai as genai
 
-# Configure Gemini
 genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
 model = genai.GenerativeModel('gemini-1.5-flash')
 
@@ -64,32 +63,25 @@ if 'shuffled_data' not in st.session_state:
 
 
 def get_ai_email(definition):
-    # This prompt forces Gemini to be creative and realistic
+    # This prompt is designed for the Gemini 3 Flash model
     prompt = f"""
-    ROLE: You are a Docplanner customer (patient or doctor) writing a support email.
+    Write a 2-sentence email from a customer. 
+    Topic: {definition}
 
-    TASK: Based on this internal case reason description: "{definition}", 
-    write a realistic support inquiry.
-
-    CONSTRAINTS:
-    - DO NOT copy the description word-for-word.
-    - DO NOT use technical jargon like "mandatory" or "optional".
-    - Use a natural, human tone (e.g., slightly annoyed, confused, or very polite).
-    - Include a fake detail like a city name or a specific (fake) time to make it feel real.
-    - Keep it short: 2 to 4 sentences.
-    - End with a name that matches the market's region.
-
-    EXAMPLE: 
-    Description: "Patient wants to delete account"
-    AI Result: "Hi, I've decided to use a different service and I'd like to remove all my personal data from your platform. Can you please close my account for me? Thanks, Marco."
+    Rules:
+    - Write it like a human would (e.g., 'I can't log in' instead of 'User authentication failure').
+    - NEVER use the phrase 'I am writing to you because'.
+    - Use a name like 'Alex' or 'Jordan'.
+    - DO NOT use the word '{definition}'.
     """
+
     try:
-        # Call the Gemini 3 Flash model for a high-quality, native response
         response = model.generate_content(prompt)
+        # If Gemini works, it returns the beautiful AI text
         return response.text.strip()
     except Exception as e:
-        # Fallback in case of a connection issue
-        return f"Support Request: I'm having an issue related to {definition}. Can you help me out?"
+        # If this shows up, it means the API is NOT connected properly
+        return f"⚠️ API Error: {str(e)}. Check your Gemini API Key in Secrets!"
 
 def save_score(name, country, score):
     # Manager's Reward Logic: 100=3 logos, 70=2 logos, 40=1 logo
