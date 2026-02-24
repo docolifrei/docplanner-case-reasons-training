@@ -1,10 +1,10 @@
 import streamlit as st
 import pandas as pd
 from streamlit_gsheets import GSheetsConnection
-import google.generativeai as genai
+import requests
+import json
 
-genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
-model = genai.GenerativeModel('gemini-1.5-flash')
+
 
 # --- 1. INITIALIZE SESSION STATE (Must be at the very top) ---
 if 'role' not in st.session_state: st.session_state.role = None
@@ -63,14 +63,30 @@ if 'shuffled_data' not in st.session_state:
 
 
 def get_ai_email(definition):
+    api_key = st.secrets["GEMINI_API_KEY"]
+    # We call the v1 API directly, bypassing the buggy library
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={api_key}"
+
+    headers = {'Content-Type': 'application/json'}
+
+    # This prompt is designed to kill the "sandwich" effect
+    data = {
+        "contents": [{
+            "parts": [{
+                "text": f"Write a realistic 2-sentence customer email about this: {definition}. Use a human tone, no technical words."
+            }]
+        }]
+    }
+
     try:
-        # Prompt designed to bypass the 'sandwich' effect
-        prompt = f"Write a realistic 2-sentence customer email about: {definition}. Don't use technical words."
-        response = model.generate_content(prompt)
-        return response.text.strip()
+        response = requests.post(url, headers=headers, data=json.dumps(data))
+        result = response.json()
+
+        # Extract the text from the raw JSON response
+        return result['candidates'][0]['content']['parts'][0]['text'].strip()
     except Exception as e:
-        # This will show you if the NEW key is working or if there's a different error
-        return f"🚨 Status: {str(e)}"
+        # If this fails, it will show the REAL raw error from Google
+        return f"🚨 Direct API Error: {str(response.status_code)} - {response.text[:100]}"
 
 def save_score(name, country, score):
     # Manager's Reward Logic: 100=3 logos, 70=2 logos, 40=1 logo
