@@ -78,21 +78,6 @@ def reset_quiz():
 
 
 # --- 5. SIDEBAR NAVIGATION ---
-st.sidebar.image("dp_logo.png", width=50)
-st.sidebar.title("DP Portal")
-st.sidebar.divider()
-if st.session_state.role == "admin":
-    menu = ["Admin Dashboard", "Explanation", "Leaderboard"]
-else:
-    menu = ["Explanation", "Practice", "Leaderboard"]
-
-page = st.sidebar.radio("Navigation", menu)
-
-st.sidebar.divider()
-if st.sidebar.button("Logout"):
-    st.session_state.role = None
-    st.rerun()
-
 if st.session_state.role is None:
     # --- ONLY SHOW LOGIN PAGE ---
     st.markdown('<div class="glass-card">', unsafe_allow_html=True)
@@ -120,17 +105,24 @@ if st.session_state.role is None:
 
 else:
     # --- SHOW REST OF THE APP (Sidebar + Content) ---
-    if st.session_state.role == "admin":
-        menu = ["Admin Dashboard", "Practice", "Explanation", "Leaderboard"]
-    else:
-        menu = ["Practice", "Explanation", "Leaderboard"]
+    # THIS IS THE ONLY PLACE THE SIDEBAR SHOULD BE DEFINED
+    with st.sidebar:
+        st.image("dp_logo.png", width=50)
+        st.title("DP Portal")
+        st.divider()
 
-    page = st.sidebar.radio("Navigation", menu)
+        if st.session_state.role == "admin":
+            menu = ["Admin Dashboard", "Practice", "Explanation", "Leaderboard"]
+        else:
+            menu = ["Practice", "Explanation", "Leaderboard"]
 
-    # Add a Logout button at the very bottom of sidebar
-    if st.sidebar.button("Logout"):
-        st.session_state.role = None
-        st.rerun()
+        page = st.radio("Navigation", menu, key="main_nav")
+
+        st.divider()
+        if st.button("Logout", key="logout_btn"):
+            st.session_state.role = None
+            st.session_state.user = None
+            st.rerun()
 
 if page == "Admin Dashboard":
     st.markdown('<div class="glass-card">', unsafe_allow_html=True)
