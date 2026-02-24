@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 from streamlit_gsheets import GSheetsConnection
 import requests
+import time
 import json
 
 
@@ -85,25 +86,27 @@ def get_ai_email(definition):
             }]
         }]
     }
+    max_retries = 3
+    for attempt in range(max_retries):
+        try:
+            response = requests.post(url, headers=headers, json=payload, timeout=10)
 
-    try:
-        response = requests.post(url, headers=headers, json=payload, timeout=10)
-
-        if response.status_code == 200:
-            result = response.json()
-            return result['candidates'][0]['content']['parts'][0]['text'].strip()
-        else:
-            # If gemini-3-flash is still in preview, try the stable gemini-2.5-flash
-            fallback_url = url.replace("gemini-3-flash", "gemini-2.5-flash")
-            response = requests.post(fallback_url, headers=headers, json=payload, timeout=10)
             if response.status_code == 200:
                 result = response.json()
                 return result['candidates'][0]['content']['parts'][0]['text'].strip()
 
-            return f"🚨 API Status {response.status_code}: {response.text[:100]}"
+            # If it's a 503, wait and try again
+            elif response.status_code == 503:
+                time.sleep(2 * (attempt + 1))  # Wait 2s, then 4s, then 6s
+                continue
 
-    except Exception as e:
-        return f"🚨 Connection Failed: {str(e)}"
+            else:
+                return f"🚨 API Status {response.status_code}: {response.text[:50]}"
+
+        except Exception as e:
+            if attempt == max_retries - 1:
+                return f"🚨 Connection Failed: {str(e)}"
+            time.sleep(2)
 
 def save_score(name, country, score):
     # Manager's Reward Logic: 100=3 logos, 70=2 logos, 40=1 logo
