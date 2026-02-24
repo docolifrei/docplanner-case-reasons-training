@@ -2,6 +2,8 @@ import streamlit as st
 import pandas as pd
 from streamlit_gsheets import GSheetsConnection
 import requests
+import json
+
 
 # Multi-language UI Labels (Core Taxonomy remains in English)
 LANGUAGES = {
@@ -141,27 +143,34 @@ if 'shuffled_data' not in st.session_state:
 
 # --- 4. CORE FUNCTIONS ---
 def translate_text(text, target_language):
-    # If the target is already English, no need to call the API
+    # If the user is already using English, don't waste an API call
     if target_language == "English":
         return text
 
     api_key = st.secrets["GEMINI_API_KEY"]
-    url = f"https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash-latest:generateContent?key={api_key}"
 
+    # We use the 'v1' stable production endpoint to avoid the 404/v1beta errors
+    url = f"https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key={api_key}"
+
+    headers = {'Content-Type': 'application/json'}
     payload = {
         "contents": [{
             "parts": [{
-                "text": f"Translate the following customer inquiry into {target_language}. Output ONLY the translated text: {text}"
+                "text": f"Translate this text into {target_language}. Output ONLY the translated text: {text}"
             }]
         }]
     }
 
     try:
-        response = requests.post(url, json=payload, timeout=5)
+        response = requests.post(url, headers=headers, json=payload, timeout=5)
         if response.status_code == 200:
-            return response.json()['candidates'][0]['content']['parts'][0]['text'].strip()
-        return text  # Fallback to English if API fails
-    except:
+            result = response.json()
+            # Navigate the JSON response to get the text
+            return result['candidates'][0]['content']['parts'][0]['text'].strip()
+        else:
+            # If it fails, we return the original English so the app doesn't break
+            return f"(Translation Error {response.status_code}) {text}"
+    except Exception as e:
         return text
 
 def get_ai_email(definition):
@@ -246,12 +255,8 @@ else:
 
     # --- PAGE ROUTING ENGINE ---
     if page == "Admin Dashboard":
-        st.markdown('<div class="glass-card">', unsafe_allow_html=True)
-        st.header("⚙️ Admin Controls")
-        c1, c2 = st.columns(2)
-        c1.metric("Status", "Online", "Stable")
-        # c2.metric("Project ID", "case-reasons-training") # Simplified to avoid secret errors
-        st.write(f"**Admin:** {st.session_state.user}")
+
+
         st.markdown('</div>', unsafe_allow_html=True)
 
         st.write("### Global Training Audit")
