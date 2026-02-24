@@ -2,8 +2,88 @@ import streamlit as st
 import pandas as pd
 from streamlit_gsheets import GSheetsConnection
 
+# Multi-language UI Labels (Core Taxonomy remains in English)
+LANGUAGES = {
+    "English": {
+        "search_label": "Search taxonomy keywords:",
+        "scenario_prefix": "Scenario",
+        "submit_btn": "Submit Answer",
+        "next_btn": "Next Scenario",
+        "correct_msg": "Correct!",
+        "incorrect_msg": "Incorrect path. Review the Sidebar Reference and try again!",
+        "login_warn": "Please Login first."
+    },
+    "Spanish": {
+        "search_label": "Buscar palabras clave:",
+        "scenario_prefix": "Escenario",
+        "submit_btn": "Enviar Respuesta",
+        "next_btn": "Siguiente Escenario",
+        "correct_msg": "¡Correcto!",
+        "incorrect_msg": "Ruta incorrecta. ¡Revisa la referencia lateral e intenta de nuevo!",
+        "login_warn": "Por favor, inicie sesión primero."
+    },
+    "Polish": {
+        "search_label": "Szukaj słów kluczowych:",
+        "scenario_prefix": "Scenariusz",
+        "submit_btn": "Wyślij odpowiedź",
+        "next_btn": "Następny scenariusz",
+        "correct_msg": "Dobrze!",
+        "incorrect_msg": "Niepoprawna ścieżka. Sprawdź pasek boczny i spróbuj ponownie!",
+        "login_warn": "Najpierw się zaloguj."
+    },
+    "Italian": {
+        "search_label": "Cerca parole chiave della tassonomia:",
+        "scenario_prefix": "Scenario",
+        "submit_btn": "Invia Risposta",
+        "next_btn": "Prossimo Scenario",
+        "correct_msg": "Corretto!",
+        "incorrect_msg": "Percorso errato. Rivedi il riferimento nella barra laterale e riprova!",
+        "login_warn": "Per favore, effettua prima l'accesso."
+    },
+    "Portuguese": {
+        "search_label": "Pesquisar palavras-chave da taxonomia:",
+        "scenario_prefix": "Cenário",
+        "submit_btn": "Enviar Resposta",
+        "next_btn": "Próximo Cenário",
+        "correct_msg": "Correto!",
+        "incorrect_msg": "Caminho incorreto. Revise a referência na barra lateral e tente novamente!",
+        "login_warn": "Por favor, faça o login primeiro."
+    },
+    "German": {
+        "search_label": "Taxonomie-Schlüsselwörter suchen:",
+        "scenario_prefix": "Szenario",
+        "submit_btn": "Antwort Absenden",
+        "next_btn": "Nächstes Szenario",
+        "correct_msg": "Richtig!",
+        "incorrect_msg": "Falscher Pfad. Überprüfen Sie die Seitenleiste und versuchen Sie es erneut!",
+        "login_warn": "Bitte loggen Sie sich zuerst ein."
+    }
+}
 
+# Map the country selected at login to the UI language
+COUNTRY_TO_LANG = {
+    "Poland": "Polish",
+    "Spain": "Spanish",
+    "Italy": "Italian",
+    "Portugal": "Portuguese",
+    "Germany": "German",
+    "Mexico": "Spanish",
+    "Brazil": "Portuguese"
+}
 
+# 1. Determine the default language based on user country
+user_country = st.session_state.get('country', 'English')
+default_lang = COUNTRY_TO_LANG.get(user_country, "English")
+
+# 2. Sidebar selection (Pre-sets to their country's language)
+selected_lang = st.sidebar.selectbox(
+    "🌐 Interface Language",
+    list(LANGUAGES.keys()),
+    index=list(LANGUAGES.keys()).index(default_lang)
+)
+
+# 3. Final translation shortcut
+t = LANGUAGES[selected_lang]
 
 # --- 1. INITIALIZE SESSION STATE (Must be at the very top) ---
 if 'role' not in st.session_state: st.session_state.role = None
@@ -171,7 +251,7 @@ else:
         with st.sidebar:
             st.divider()
             st.subheader("📖 Quick Reference")
-            search_term = st.text_input("Search taxonomy keywords:")
+            search_term = st.text_input(t["search_label"])
             if search_term:
                 filtered_df = df[df['Definition / Notes'].str.contains(search_term, case=False, na=False)]
 
@@ -201,7 +281,7 @@ else:
             row = st.session_state.shuffled_data.iloc[st.session_state.current_question]
             current_email = get_ai_email(row['Definition / Notes'])
             st.markdown('<div class="glass-card">', unsafe_allow_html=True)
-            st.subheader(f"Scenario {st.session_state.current_question + 1}")
+            st.subheader(f"{t['scenario_prefix']} {st.session_state.current_question + 1}")
             # This displays the text from your CSV instantly
             st.write(current_email)
             st.markdown('</div>', unsafe_allow_html=True)
@@ -242,7 +322,7 @@ else:
 
             if not st.session_state.question_solved:
 
-                if st.button("Submit Answer"):
+                if st.button(t["submit_btn"]):
 
                     check_r1 = (r1 == row['Case Reason 1 (mandatory)'])
 
@@ -264,13 +344,12 @@ else:
 
                         st.session_state.score -= 5
 
-                        st.error("Incorrect path. Review the Sidebar Reference and try again!")
+                        st.error(t["incorrect_msg"])
 
             else:
 
-                st.success("Correct!")
-
-                if st.button("Next Scenario"):
+                st.success(t["correct_msg"])
+                if st.button(t["next_btn"]):
 
                     if st.session_state.current_question + 1 < 10:
 
