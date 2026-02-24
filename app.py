@@ -73,7 +73,15 @@ def get_ai_email(definition):
     payload = {
         "contents": [{
             "parts": [{
-                "text": f"Context: Customer email. Task: Rewrite '{definition}' as a 2-sentence human inquiry. Rules: Be realistic, avoid technical jargon."
+                "text": (
+                    f"Write a single support email from a customer about: '{definition}'.\n"
+                    "Rules:\n"
+                    "- Output ONLY the email body.\n"
+                    "- Do NOT offer options, choices, or multiple versions.\n"
+                    "- Do NOT use introductory text like 'Here is an email'.\n"
+                    "- Use 2-3 sentences and a natural, human tone.\n"
+                    "- Sign off with a random name."
+                )
             }]
         }]
     }
