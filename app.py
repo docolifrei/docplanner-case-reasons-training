@@ -78,8 +78,9 @@ def reset_quiz():
 
 
 # --- 5. SIDEBAR NAVIGATION ---
+# --- 5. AUTHENTICATION & NAVIGATION GATE ---
 if st.session_state.role is None:
-    # --- ONLY SHOW LOGIN PAGE ---
+    # ONLY SHOW LOGIN PAGE - NO SIDEBAR HERE
     st.markdown('<div class="glass-card">', unsafe_allow_html=True)
     st.title("🛡️ Docplanner Training Access")
 
@@ -104,26 +105,27 @@ if st.session_state.role is None:
     st.markdown('</div>', unsafe_allow_html=True)
 
 else:
-    # --- SHOW REST OF THE APP (Sidebar + Content) ---
-    # THIS IS THE ONLY PLACE THE SIDEBAR SHOULD BE DEFINED
+    # --- EVERYTHING ELSE ONLY RUNS AFTER LOGIN ---
     with st.sidebar:
         st.image("dp_logo.png", width=50)
         st.title("DP Portal")
         st.divider()
 
+        # Define the menu based on role
         if st.session_state.role == "admin":
-            menu = ["Admin Dashboard", "Explanation", "Practice", "Leaderboard"]
+            menu_options = ["Admin Dashboard", "Practice", "Explanation", "Leaderboard"]
         else:
-            menu = ["Explanation", "Practice", "Leaderboard"]
+            menu_options = ["Practice", "Explanation", "Leaderboard"]
 
-        page = st.radio("Navigation", menu, key="main_nav")
+        # Create the navigation widget ONLY ONCE
+        page = st.radio("Navigation", menu_options, key="main_navigation")
 
         st.divider()
-        if st.button("Logout", key="logout_btn"):
+        if st.button("Logout", key="sidebar_logout"):
             st.session_state.role = None
-            st.session_state.user = None
             st.rerun()
 
+    # --- PAGE ROUTING ENGINE ---
 if page == "Admin Dashboard":
     st.markdown('<div class="glass-card">', unsafe_allow_html=True)
     st.header("⚙️ Admin Controls")
