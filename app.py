@@ -226,31 +226,24 @@ else:
 
 
 
+
     elif page == "Leaderboard":
 
         st.header("🏆 Wall of Fame")
 
-        # 1. HARDCODE YOUR ID HERE (Replace the 'XXXXX' with the ID from Step 1)
+        # PASTE THE LINK YOU JUST COPIED BETWEEN THE QUOTES BELOW
 
-        SHEET_ID = "1uYMWkxDxZs0PDh5YmY6kCNwX2C545y-OX4GejXTe3Vo"
-
-        SHEET_NAME = "CR Restructure Agent Score"  # Make sure this matches your tab name exactly!
-
-        # 2. Construct a direct export link
-
-        # This bypasses the Google Auth handshake entirely
-
-        url = f"https://docs.google.com/spreadsheets/d/1uYMWkxDxZs0PDh5YmY6kCNwX2C545y-OX4GejXTe3Vo/gviz/tq?tqx=out:csv&sheet=CR Restructure Agent Score"
+        csv_url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQlvQW_QsBwRB3ZWmK7wibMhW7oeBqbpd8osTvPprhxXROfpc01x0JwcptMB4oOFHMcB0V-IHvvmnU2/pub?gid=0&single=true&output=csv"
 
         try:
 
-            # 3. Use standard pandas to read the public link
+            # This bypasses all Google authentication and "Transport" errors
 
-            df_leader = pd.read_csv(url)
+            df_leader = pd.read_csv(csv_url)
 
             if not df_leader.empty:
 
-                # Clean up the data and sort
+                # Sort by Score (Ensure your column is named exactly 'Score')
 
                 df_leader = df_leader.sort_values(by="Score", ascending=False)
 
@@ -258,17 +251,11 @@ else:
 
             else:
 
-                st.info("No scores found yet!")
+                st.info("The board is currently empty!")
 
 
         except Exception as e:
 
-            st.error("Access Denied by Google.")
+            st.error("Could not read the leaderboard file.")
 
-            st.info("Checklist to fix this:")
-
-            st.write("1. Open the Google Sheet.")
-
-            st.write("2. Click **Share** (Top Right).")
-
-            st.write("3. Change 'Restricted' to **'Anyone with the link'**.")
+            st.write("Please ensure you chose 'Comma-separated values (.csv)' when publishing.")
