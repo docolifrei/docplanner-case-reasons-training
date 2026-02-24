@@ -77,20 +77,7 @@ def reset_quiz():
     st.session_state.shuffled_data = df.dropna(subset=['Definition / Notes']).sample(frac=1).reset_index(drop=True)
 
 
-# --- 5. SIDEBAR NAVIGATION ---
-
-if st.session_state.role == "admin":
-    menu = ["Admin Dashboard", "Explanation", "Leaderboard"]
-else:
-    menu = ["Explanation", "Practice", "Leaderboard"]
-
-page = st.sidebar.radio("Navigation", menu)
-
-st.sidebar.divider()
-if st.sidebar.button("Logout"):
-    st.session_state.role = None
-    st.rerun()
-
+# --- 5. NAVIGATION GATE ---
 if st.session_state.role is None:
     # --- ONLY SHOW LOGIN PAGE ---
     st.markdown('<div class="glass-card">', unsafe_allow_html=True)
@@ -117,18 +104,24 @@ if st.session_state.role is None:
     st.markdown('</div>', unsafe_allow_html=True)
 
 else:
-    # --- SHOW REST OF THE APP (Sidebar + Content) ---
-    if st.session_state.role == "admin":
-        menu = ["Admin Dashboard", "Practice", "Explanation", "Leaderboard"]
-    else:
-        menu = ["Practice", "Explanation", "Leaderboard"]
+    # --- SHOW SIDEBAR ONLY AFTER LOGIN ---
+    with st.sidebar:
+        st.image("dp_logo.png", width=50)
+        st.title("DP Portal")
+        st.divider()
 
-    page = st.sidebar.radio("Navigation", menu)
+        if st.session_state.role == "admin":
+            menu = ["Admin Dashboard", "Practice", "Explanation", "Leaderboard"]
+        else:
+            menu = ["Practice", "Explanation", "Leaderboard"]
 
-    # Add a Logout button at the very bottom of sidebar
-    if st.sidebar.button("Logout"):
-        st.session_state.role = None
-        st.rerun()
+        # We add a unique key here just to be safe
+        page = st.radio("Navigation", menu, key="navigation_menu")
+
+        st.divider()
+        if st.button("Logout"):
+            st.session_state.role = None
+            st.rerun()
 
 if page == "Admin Dashboard":
     st.markdown('<div class="glass-card">', unsafe_allow_html=True)
