@@ -64,17 +64,13 @@ if 'shuffled_data' not in st.session_state:
 
 def get_ai_email(definition):
     try:
-        # Standard attempt
-        response = model.generate_content(f"Write a 2-sentence email about: {definition}")
+        # Prompt designed to bypass the 'sandwich' effect
+        prompt = f"Write a realistic 2-sentence customer email about: {definition}. Don't use technical words."
+        response = model.generate_content(prompt)
         return response.text.strip()
     except Exception as e:
-        # If it fails, let's see what the API actually allows
-        try:
-            # This fetches the real list of models available to YOUR key
-            models = [m.name for m in genai.list_models()]
-            return f"🚨 Key works, but use one of these names: {models}"
-        except Exception as list_err:
-            return f"🚨 Deep Connection Error: {str(list_err)}"
+        # This will show you if the NEW key is working or if there's a different error
+        return f"🚨 Status: {str(e)}"
 
 def save_score(name, country, score):
     # Manager's Reward Logic: 100=3 logos, 70=2 logos, 40=1 logo
