@@ -64,29 +64,32 @@ if 'shuffled_data' not in st.session_state:
 
 def get_ai_email(definition):
     api_key = st.secrets["GEMINI_API_KEY"]
-    # We call the v1 API directly, bypassing the buggy library
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={api_key}"
+
+    # Switch to V1 STABLE and use the LATEST alias
+    url = f"https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash-latest:generateContent?key={api_key}"
 
     headers = {'Content-Type': 'application/json'}
 
-    # This prompt is designed to kill the "sandwich" effect
-    data = {
+    payload = {
         "contents": [{
             "parts": [{
-                "text": f"Write a realistic 2-sentence customer email about this: {definition}. Use a human tone, no technical words."
+                "text": f"Context: You are a customer. Task: Write a 2-sentence email about: {definition}. Tone: Natural. Rules: Do not use the words from the description."
             }]
         }]
     }
 
     try:
-        response = requests.post(url, headers=headers, data=json.dumps(data))
-        result = response.json()
+        response = requests.post(url, headers=headers, json=payload, timeout=10)
 
-        # Extract the text from the raw JSON response
-        return result['candidates'][0]['content']['parts'][0]['text'].strip()
+        if response.status_code == 200:
+            result = response.json()
+            return result['candidates'][0]['content']['parts'][0]['text'].strip()
+        else:
+            # This will show us if V1 also gives a 404 or a different error (like 403)
+            return f"🚨 API Status {response.status_code}: {response.text[:50]}"
+
     except Exception as e:
-        # If this fails, it will show the REAL raw error from Google
-        return f"🚨 Direct API Error: {str(response.status_code)} - {response.text[:100]}"
+        return f"🚨 Connection Failed: {str(e)}"
 
 def save_score(name, country, score):
     # Manager's Reward Logic: 100=3 logos, 70=2 logos, 40=1 logo
