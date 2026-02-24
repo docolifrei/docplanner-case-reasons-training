@@ -78,9 +78,7 @@ def reset_quiz():
 
 
 # --- 5. SIDEBAR NAVIGATION ---
-st.sidebar.image("dp_logo.png", width=50)
-st.sidebar.title("DP Portal")
-st.sidebar.divider()
+
 if st.session_state.role == "admin":
     menu = ["Admin Dashboard", "Explanation", "Leaderboard"]
 else:
