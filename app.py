@@ -4,7 +4,7 @@ from streamlit_gsheets import GSheetsConnection
 import google.generativeai as genai
 
 genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
-
+model = genai.GenerativeModel('gemini-1.5-flash')
 
 # --- 1. INITIALIZE SESSION STATE (Must be at the very top) ---
 if 'role' not in st.session_state: st.session_state.role = None
@@ -64,24 +64,17 @@ if 'shuffled_data' not in st.session_state:
 
 def get_ai_email(definition):
     try:
-        # 2. FORCE STABLE VERSION
-        # We define the model INSIDE the function to ensure a fresh handshake
-        model = genai.GenerativeModel(
-            model_name='gemini-1.5-flash',
-            # This is the secret sauce: it tells the library 'Don't use beta!'
-        )
-
-        response = model.generate_content(f"Write a 2-sentence support email for: {definition}")
+        # Standard attempt
+        response = model.generate_content(f"Write a 2-sentence email about: {definition}")
         return response.text.strip()
-
     except Exception as e:
-        # 3. THE ULTIMATE DEBUG
-        # If this fails, it will list EVERY model your key can actually see.
+        # If it fails, let's see what the API actually allows
         try:
-            m_list = [m.name for m in genai.list_models()]
-            return f"🚨 Models available to you: {m_list}"
-        except:
-            return f"🚨 Connection Blocked: {str(e)}"
+            # This fetches the real list of models available to YOUR key
+            models = [m.name for m in genai.list_models()]
+            return f"🚨 Key works, but use one of these names: {models}"
+        except Exception as list_err:
+            return f"🚨 Deep Connection Error: {str(list_err)}"
 
 def save_score(name, country, score):
     # Manager's Reward Logic: 100=3 logos, 70=2 logos, 40=1 logo
