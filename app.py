@@ -223,7 +223,13 @@ elif page == "Practice":
 
 elif page == "Leaderboard":
     st.title("🏆 Wall of Fame")
-    data = conn.read(ttl="1m").sort_values("Score", ascending=False)
+    # data = conn.read(ttl="1m").sort_values("Score", ascending=False)
+    try:
+        # We remove the ttl="1m" temporarily to see if a fresh, un-cached read fixes the handshake
+        data = conn.read().sort_values("Score", ascending=False)
+    except Exception as e:
+        st.error("Google Connection is resting. Please try again in 2 minutes.")
+        data = pd.DataFrame()  # Prevents the rest of the page from crashing
     for _, row in data.head(10).iterrows():
         st.markdown(f'<div class="glass-card"><b>{row["Name"]}</b> - {row["Score"]} pts</div>', unsafe_allow_html=True)
         cols = st.columns(12)
