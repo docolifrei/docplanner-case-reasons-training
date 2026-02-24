@@ -68,7 +68,7 @@ def get_ai_email(definition):
 
     # 2026 Current Production Models: gemini-2.5-flash or gemini-3-flash
     # Using 'gemini-3-flash' as it is the current frontier-class standard
-    url = f"https://generativelanguage.googleapis.com/v1/models/gemini-3-flash:generateContent?key={api_key}"
+    url = f"https://generativelanguage.googleapis.com/v1/models/gemini-3-flash-preview:generateContent?key={api_key}"
 
     headers = {'Content-Type': 'application/json'}
     payload = {
