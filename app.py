@@ -223,25 +223,53 @@ else:
                         st.session_state.quiz_complete = True
                     st.rerun()
 
-    elif page == "Leaderboard":
-        st.title("🏆 Wall of Fame")
-        # data = conn.read(ttl="1m").sort_values("Score", ascending=False)
 
-        st.cache_data.clear()
+    elif page == "Leaderboard":
+
+        st.header("🏆 Wall of Fame")
 
         try:
-            # Re-establish connection locally to bypass any stuck global objects
-            fresh_conn = st.connection("gsheets", type=GSheetsConnection)
-            leaderboard_df = fresh_conn.read(ttl=0)  # ttl=0 forces it to NOT use old data
+
+            # 1. Get the Sheet ID from your URL
+
+            # The URL looks like: https://docs.google.com/spreadsheets/d/ID_HERE/edit
+
+            sheet_url = st.secrets["connections"]["gsheets"]["spreadsheet"]
+
+            # 2. Convert the URL to a direct CSV download link
+
+            csv_url = sheet_url.replace("/edit#gid=", "/export?format=csv&gid=")
+
+            if "/edit" in csv_url and "/export" not in csv_url:
+                csv_url = csv_url.replace("/edit", "/export?format=csv")
+
+            # 3. Read directly with Pandas (Bypasses the Transport layer)
+
+            leaderboard_df = pd.read_csv(csv_url)
 
             if not leaderboard_df.empty:
-                # Sort and display
+
                 leaderboard_df = leaderboard_df.sort_values(by="Score", ascending=False)
+
                 st.dataframe(leaderboard_df, use_container_width=True)
+
             else:
-                st.info("The board is currently empty. Be the first to score!")
+
+                st.info("The board is currently empty.")
+
 
         except Exception as e:
-            st.error("The Google Sheets link is still being stubborn.")
-            st.warning(
-                "Action needed: Please go to Streamlit Cloud 'Settings' -> 'Secrets' and ensure your 'spreadsheet' URL is correct.")
+
+            st.error("Standard connection failed. Reverting to backup access...")
+
+            # Backup: Try the original connection one last time with no cache
+
+            try:
+
+                data = conn.read(ttl=0)
+
+                st.dataframe(data.sort_values("Score", ascending=False))
+
+            except:
+
+                st.warning("Please ensure your Google Sheet is set to 'Anyone with the link can view'.")
