@@ -1,9 +1,7 @@
 import streamlit as st
 import pandas as pd
 from streamlit_gsheets import GSheetsConnection
-import requests
-import time
-import json
+
 
 
 
@@ -64,49 +62,12 @@ if 'shuffled_data' not in st.session_state:
 
 
 def get_ai_email(definition):
-    api_key = st.secrets["GEMINI_API_KEY"]
+    # This replaces the AI call with the actual data from your CSV
+    if pd.isna(definition) or definition == "":
+        return "No description available for this scenario."
 
-    # 2026 Current Production Models: gemini-2.5-flash or gemini-3-flash
-    # Using 'gemini-3-flash' as it is the current frontier-class standard
-    url = f"https://generativelanguage.googleapis.com/v1/models/gemini-3-flash-preview:generateContent?key={api_key}"
-
-    headers = {'Content-Type': 'application/json'}
-    payload = {
-        "contents": [{
-            "parts": [{
-                "text": (
-                    f"Write a single support email from a customer about: '{definition}'.\n"
-                    "Rules:\n"
-                    "- Output ONLY the email body.\n"
-                    "- Do NOT offer options, choices, or multiple versions.\n"
-                    "- Do NOT use introductory text like 'Here is an email'.\n"
-                    "- Use 2-3 sentences and a natural, human tone.\n"
-                    "- Sign off with a random name."
-                )
-            }]
-        }]
-    }
-    max_retries = 3
-    for attempt in range(max_retries):
-        try:
-            response = requests.post(url, headers=headers, json=payload, timeout=10)
-
-            if response.status_code == 200:
-                result = response.json()
-                return result['candidates'][0]['content']['parts'][0]['text'].strip()
-
-            # If it's a 503, wait and try again
-            elif response.status_code == 503:
-                time.sleep(2 * (attempt + 1))  # Wait 2s, then 4s, then 6s
-                continue
-
-            else:
-                return f"🚨 API Status {response.status_code}: {response.text[:50]}"
-
-        except Exception as e:
-            if attempt == max_retries - 1:
-                return f"🚨 Connection Failed: {str(e)}"
-            time.sleep(2)
+    # We return the raw text from your 'Description' column
+    return f"Customer Inquiry: {definition}"
 
 def save_score(name, country, score):
     # Manager's Reward Logic: 100=3 logos, 70=2 logos, 40=1 logo
@@ -245,29 +206,30 @@ else:
             if st.button("Restart"): reset_quiz()
 
 
+
         else:
 
-            # THIS SECTION NOW RUNS CORRECTLY DURING THE QUIZ
+            # THIS SECTION NOW PULLS DIRECTLY FROM YOUR DATA
 
             row = st.session_state.shuffled_data.iloc[st.session_state.current_question]
 
-            # AI Email Generation
+            # Use the 'Definition / Notes' column as the inquiry text
 
-            cache_key = f"ai_email_{st.session_state.current_question}"
+            # We don't need the spinner or complex caching anymore
 
-            if cache_key not in st.session_state:
-                with st.spinner("🤖 AI Customer is writing an email..."):
-                    st.session_state[cache_key] = get_ai_email(row['Definition / Notes'])
-
-            current_email = st.session_state[cache_key]
+            current_email = get_ai_email(row['Definition / Notes'])
 
             st.markdown('<div class="glass-card">', unsafe_allow_html=True)
 
             st.subheader(f"Scenario {st.session_state.current_question + 1}")
 
+            # This displays the text from your CSV instantly
+
             st.write(current_email)
 
             st.markdown('</div>', unsafe_allow_html=True)
+
+            # --- THE REST OF YOUR DROPDOWNS AND SUBMISSION LOGIC STAYS THE SAME ---
 
             # --- TAXONOMY DROPDOWNS ---
 
