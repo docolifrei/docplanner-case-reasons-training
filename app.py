@@ -64,22 +64,32 @@ if 'shuffled_data' not in st.session_state:
 
 
 def get_ai_email(definition):
-    # Using the flash model for speed
+    # This prompt forces Gemini to be creative and realistic
     prompt = f"""
-    Act as a customer contacting Docplanner support. 
-    Write a short, realistic email based on this internal scenario: "{definition}".
+    ROLE: You are a Docplanner customer (patient or doctor) writing a support email.
 
-    Instructions:
-    - Vary the tone (sometimes polite, sometimes a bit stressed).
-    - Use natural language, not technical taxonomy words.
-    - Keep it under 50 words.
-    - End with a name like 'Maria', 'Luca', or 'Piotr'.
+    TASK: Based on this internal case reason description: "{definition}", 
+    write a realistic support inquiry.
+
+    CONSTRAINTS:
+    - DO NOT copy the description word-for-word.
+    - DO NOT use technical jargon like "mandatory" or "optional".
+    - Use a natural, human tone (e.g., slightly annoyed, confused, or very polite).
+    - Include a fake detail like a city name or a specific (fake) time to make it feel real.
+    - Keep it short: 2 to 4 sentences.
+    - End with a name that matches the market's region.
+
+    EXAMPLE: 
+    Description: "Patient wants to delete account"
+    AI Result: "Hi, I've decided to use a different service and I'd like to remove all my personal data from your platform. Can you please close my account for me? Thanks, Marco."
     """
     try:
+        # Call the Gemini 3 Flash model for a high-quality, native response
         response = model.generate_content(prompt)
-        return response.text
-    except Exception:
-        return f"Hello, I need help with {definition}. Can you please assist?"
+        return response.text.strip()
+    except Exception as e:
+        # Fallback in case of a connection issue
+        return f"Support Request: I'm having an issue related to {definition}. Can you help me out?"
 
 def save_score(name, country, score):
     # Manager's Reward Logic: 100=3 logos, 70=2 logos, 40=1 logo
